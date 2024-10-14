@@ -3,28 +3,46 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
 # Constants (you'll need to set these values)
-S_R = 1.0  # Example value for S_R
-q_p = 5  # Example value for q_p
-S_F30 = 0  # Example value for S_F30
-S_L30 = 1.0  # Example value for S_L30
-g = 9.81  # Gravitational constant
+S_R = 40.0  
+q_p = 30  
+S_F30 = 0  
+S_L30_non_linéaire = 0.158
+S_L30_linéaire = 0.314  
+g = 981  # Gravitational constant
+h_bar = 18.5
 
 # Function that represents the ODE dh_3/dt
 def dh3_dx(t, h3):
-    return (1 / S_R) * q_p - (1 / S_R) * (S_F30 + S_L30) * np.sqrt(2 * g * h3)
+    return (1 / S_R) * q_p - (1 / S_R) * (S_F30 + S_L30_non_linéaire) * np.sqrt(2 * g * h3)
+def dh3_dt_linéarise(t, h3_0):
+    return A(S_L30_linéaire , S_R , g , h_bar) * h3_0 + B(S_R) * q_p 
+
+
+def A(S_L30 , S_R , g , h_bar) : 
+    return (-np.sqrt(2*g)*S_L30)/(2*S_R*np.sqrt(h_bar))
+def B(S_R) : 
+    return 1 / S_R 
+def C(S_R , g , h_bar) : 
+    return - np.sqrt(2 * g * h_bar) / S_R
 
 # Initial condition for h_3
 h3_0 = 0  # Initial value of h_3
 
 # Define the range of x values over which to solve the ODE
-t_span = (0, 10)  # Example range for x from 0 to 10
+t_span = (0, 250)  # Example range for x from 0 to 250
 
 # Call solve_ivp to solve the ODE
 solution = solve_ivp(dh3_dx, t_span, [h3_0], method='RK45')
-
+solution_linéarise = solve_ivp(dh3_dt_linéarise, t_span, [h3_0], method='RK45')
+print(np.max(solution.y[0]))
 # Plotting the solution
 plt.plot(solution.t, solution.y[0])
-plt.xlabel('x')
-plt.ylabel('h_3')
+plt.plot(solution_linéarise.t, solution_linéarise.y[0])
+plt.axhline(y=np.max(solution_linéarise.y[0]), color='r', linestyle='--', label='Max (x={:.2f})'.format(np.max(solution.t)))
+plt.legend(['Non linéaire', 'linéaire'])
+plt.xlabel('t[sec]')
+plt.ylabel('h_3[cm]')
 plt.title('Solution of the ODE')
 plt.show()
+
+
