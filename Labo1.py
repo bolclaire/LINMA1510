@@ -78,7 +78,7 @@ def read_file(name_file):
 t , tank_level = read_file('Labo/LINMA1510/open-loop-30.txt')
 t2 , tank_level2 = read_file('Labo/LINMA1510/closed-loop-P3.txt')
 t3 , tank_level3 = read_file('Labo/LINMA1510/closed-loop-P10.txt')
-
+t4, tank_level4 = read_file('Labo/LINMA1510/closed-loop-disturb-ZN- final.txt')
 
 
 # Plotting the solution
@@ -120,5 +120,15 @@ plt.xlabel('t[sec]')
 plt.ylabel('h_3[cm]')
 plt.title("Solutions of the ODEs (K_p = 10)")
 plt.show()
+
+
+plt.figure() 
+plt.plot(t4 , tank_level4)
+plt.legend(['Data(réalité)'])
+plt.xlabel('t[sec]')
+plt.ylabel('h_3[cm]')
+plt.title("Niveau de l'eau avec ZN")
+plt.show()
+
 
 
