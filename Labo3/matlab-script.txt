@@ -1,0 +1,118 @@
+% Third laboratory : control of a three - tank system
+
+% The system is linearized around an equilibrium point that we have to find experimentally
+% Legend : a is a function (will vary), a_ is an equilibrium point (arbitrarily chosen or found experimentally)
+
+% Here are the system values
+
+Sf  = 16*1e-2   % cm^2   % section of the front valves
+v1_ = Sf        % cm^2   % tank 1 front valve section
+v2_ = Sf        % cm^2   % tank 2 front valve section
+v3_ = Sf        % cm^2   % tank 3 front valve section 
+
+So  = 16*1e-2   % cm^2   % section of the outgoing tube
+Si  = 16*1e-2   % cm^2   % section of the intermediates tubes
+St  = 43        % cm^2   % section of the tanks
+g   = 9.81*1e2  % cm/s^2  % gravitational constant
+
+
+%%
+% C.2.1. Finding and equilibrium
+%%
+
+% u1, u2 as steps of given magnitude
+u1 = 60*ones(2400,1);
+u2 = 60*ones(2400,1);
+U = [u1,u2]
+
+save("flows.txt","U","-ascii","-tabs");
+str = fileread("flows.txt");
+str = strrep(str, '.', ',');
+f = fopen("flows.txt", 'w');
+fwrite(f, str, 'char');
+fclose(f);
+
+% DO THE EXPERIMENT WITH flows.txt
+
+% Report here the equilibrium values
+x1_ = 30       % cm     % water level tank1
+x2_ = 30       % cm     % water level tank2
+x3_ = 30       % cm     % water level tank3
+
+% Linearized system matrices
+A = [[ -((Si+v1_)/St)*sqrt(g/(2*x1_)) , (Si/St)*sqrt(g/(2*x2_))          , 0                                 ],
+     [ (Si/St)*sqrt(g/(2*x2_))        , -((v2_+2*Si)/St)*sqrt(g/(2*x2_)) , (Si/St)*sqrt(g/(2*x3_))           ],
+     [ 0                              , (Si/St)*sqrt(g/(2*x2_))          , -((Si+So+v3_)/St)*sqrt(g/(2*x3_)) ]] 
+
+B = [[ 0   , 1/St ],
+     [ 0   , 0    ],
+     [ 1/St, 0    ]] 
+
+D = [[ (-1/St)*sqrt(2*g*x1_) , 0                     , 0                     ],
+     [ 0                     , (-1/St)*sqrt(2*g*x2_) , 0                     ],
+     [ 0                     , 0                     , (-1/St)*sqrt(2*g*x3_) ]] 
+
+% Model intern stability
+A_eig = eig(A)
+
+
+% Constructing the system
+% x* = Ax + Bu ; y = Cx + Eu
+% y = x in this case
+
+C = eye(3);
+E = zeros(3,2);
+sys = ss(A,B,C,E);
+
+
+%%
+% C.2.2. Gramian control
+%%
+
+% Q : how do we take v into consideration ?
+
+% Part1 : the system is brought to the equilibrium in 240s 
+% by using the step-input U
+U1 = U;
+
+% Part2: bringing the system from the equilibrium to the final state using Wc
+tf = 30;
+t = 0:0.1:tf;
+
+% Shifting around the equilibrium
+xf = ([44,21,30]-[x1_, x2_, x3_]).';
+
+% Computing the gramian controllability matrix
+opt = gramOptions('TimeIntervals',[0,tf]);
+Wc = gram(sys,'c',opt)
+
+% Computing the input
+Wc_inv = inv(Wc);
+BT = B.';
+AT = A.';
+Wc_inv_xf = Wc_inv * xf; 
+U2 = zeros(2, length(t));
+for i = 1:length(t)
+    exp_matrix = expm(AT * (tf - t(i)));
+    U2(:,i) = BT * exp_matrix * (Wc_inv * xf);
+end
+U2 = (U2 + 60).';
+U2 = min(U2,100);
+
+% Concatenate inputs vertically and save in a txt
+U = [U1;U2];
+save("flows2.txt","U","-ascii","-tabs");
+str = fileread("flows.txt");
+str = strrep(str, '.', ',');
+f = fopen("flows.txt", 'w');
+fwrite(f, str, 'char');
+fclose(f);
+
+
+%%
+% Closed-loop
+%%
+
+% To modify
+K1 = ones(2,3);
+K2 = ones(2,3);
