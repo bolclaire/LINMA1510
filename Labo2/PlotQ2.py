@@ -44,6 +44,8 @@ def display_data(title,plant_input,plant_output,d=False) :
     plt.show()
 
 
+
+
 for i in range(3) :
     display_data(title[i],plant_input[i],plant_output[i])
     display_data(title[i],plant_input[i],plant_output[i], True)
