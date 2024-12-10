@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 
-# Q2 : P, PI, PID controllers, with and without disturbance
-
 time = np.linspace(0,50,200)
 ref = np.ones_like(time)
 
@@ -12,9 +10,9 @@ ref = np.ones_like(time)
 disturbance = np.zeros_like(time)
 disturbance[time >= 15] = 0.5
 
-title = ["P controller", "PI controller", "PID controller", "P controller w/ disturbance", "PI controller w/ disturbance", "PID controller w/ disturbance"]
-plant_input = ['Controle_P.csv','Controle_PI.csv','Controle_PID.csv','Controle_P_d.csv','Controle_PI_d.csv','Controle_PID_d.csv']
-plant_output = ['Controle_P_sum.csv','Controle_PI_sum.csv','Controle_PID_sum.csv','Controle_P_sum_d.csv','Controle_PI_sum_d.csv','Controle_PID_sum_d.csv']
+title = "PID controller"
+plant_input = 'Controle_PID.csv'
+plant_output = 'Controle_PID_sum.csv'
 
 
 def display_data(title,plant_input,plant_output,d=False) :
@@ -28,7 +26,7 @@ def display_data(title,plant_input,plant_output,d=False) :
     t2,y2 = csv2['COlonne1'],csv2['Colonne2']
 
     plt.figure(title,figsize=(10, 6))
-    plt.plot(time,ref,label="Ref input", color='yellow')
+    plt.plot(time,ref,label="Ref input", color='red')
     #plt.plot(t1, y1, label="Plant input", color='blue', linewidth=1)
     plt.plot(t2, y2, label="Output", color = 'green')
     if d : 
@@ -44,6 +42,4 @@ def display_data(title,plant_input,plant_output,d=False) :
     plt.show()
 
 
-for i in range(3) :
-    display_data(title[i],plant_input[i],plant_output[i])
-    display_data(title[i],plant_input[i+3],plant_output[i+3], True)
+display_data(title,plant_input,plant_output)
